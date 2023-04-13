@@ -63,25 +63,68 @@ if __name__ == "__main__":
 				username = input("Enter your username: ")
 				user_s.send(create_json("join",username,"","").encode())
 				server_msg = convert_json(data=user_s.recv(1024))
+				#Needs a youve joined a group message and access to the most recent 2 message
 				print(server_msg["Data"])
-
 			elif opt == "leave":
 				user_s.send(create_json("leave",username,"","").encode())
 				server_msg = convert_json(data=user_s.recv(1024))
+				#Needs a simple you've left the group message
 				print(server_msg["Data"])
 			elif opt == "post":
-				msg = input("Your message: ")
+				sub = input("Your Subject: ")
+				msg = sub + "\n\r" + input("Your message: ")
 				user_s.send(create_json("post",username,"", msg).encode())
 				server_msg = convert_json(data=user_s.recv(1024))
+				#Should recieve back your message on the message board below the most recent message
 				print(server_msg["Data"])
 			elif opt == "users":
 				user_s.send(create_json("users",username,"","").encode())
 				server_msg = convert_json(data=user_s.recv(1024))
+				#Should recieve back a list of all users 
 				print(server_msg["Data"])
 			elif opt == "message":
 				msg_id = input("Enter the msg id: ")
 				user_s.send(create_json("message", username, "", msg_id).encode())
 				server_msg = convert_json(data=user_s.recv(1024))
+				#should recieve back the specific message requested
+				print(server_msg["Data"])
+			#
+			#
+			#Group Section 
+			elif opt == "groups":
+				user_s.send(create_json("groups",username,"","").encode())
+				server_msg = convert_json(data=user_s.recv(1024))
+				#Needs a list of all possible groups
+				print(server_msg["Data"])
+			elif opt == "groupjoin":
+				username = input("Enter your username: ")
+				gNum = input("Enter the group you would like to join: ")
+				user_s.send(create_json("join",username,gNum,"").encode())
+				server_msg = convert_json(data=user_s.recv(1024))
+				#Needs a youve joined a group message and access to the most recent 2 message of that specific group
+				print(server_msg["Data"])
+			elif opt == "groupleave":
+				user_s.send(create_json("leave",username,gNum,"").encode())
+				server_msg = convert_json(data=user_s.recv(1024))
+				#Needs a simple you've left the group message perferrably with the number of the group 
+				print(server_msg["Data"])
+			elif opt == "grouppost":
+				sub = input("Your Subject: ")
+				msg = sub + "\n\r" + input("Your message: ")
+				user_s.send(create_json("post",username,gNum, msg).encode())
+				server_msg = convert_json(data=user_s.recv(1024))
+				#Should recieve back your message on the message board below the most recent message
+				print(server_msg["Data"])
+			elif opt == "groupusers":
+				user_s.send(create_json("users",username,gNum,"").encode())
+				server_msg = convert_json(data=user_s.recv(1024))
+				#Should recieve back a list of all users for that specific group 
+				print(server_msg["Data"])
+			elif opt == "groupmessage":
+				msg_id = input("Enter the msg id: ")
+				user_s.send(create_json("message", username, "", msg_id).encode())
+				server_msg = convert_json(data=user_s.recv(1024))
+				#should recieve back the specific message requested
 				print(server_msg["Data"])
 	except KeyboardInterrupt:
 		print("Keyboard Interrupted, exiting")
