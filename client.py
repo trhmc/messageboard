@@ -24,18 +24,21 @@ def create_json(opt, username, group, data):
 
 def help():
 	print('Commands: ')
-	print('connect')
-	print('exit')
-	print('join')
-	print('leave')
-	print('post')
-	print('message')
-	print('users')
-	print('group_join')
-	print('group_leave')
-	print('group_post')
-	print('group_message')
-	print('group_users')
+	print('help\t\tReturn the help menu')
+	print('connect\t\tCommand to connect to the server')
+	print('exit\t\tCommand to exit the server')
+	print('join\t\tCommand to join the message board')
+	print('leave\t\tCommand to leave the message board')
+	print('post\t\tCommand to post in the message board')
+	print('message\t\tCommand to retrieve message in the message board')
+	print('users\t\tCommand to retrieve list of users in the message board')
+	print('groups\t\tCommand to retrieve list of available groups in the message board')
+	print('group_join\tCommand to join a group')
+	print('group_leave\tCommand to leave a group')
+	print('group_post\tCommand to post in a group')
+	print('group_message\tCommand to retrieve message in a group')
+	print('group_users\tCommand to retrieve list of users in a group')
+	print("Press Ctrl+C to stop.")
 
 IP = "192.168.86.26"
 PORT = 12345
@@ -49,12 +52,15 @@ if __name__ == "__main__":
 	grp = ""
 	data = ""
 	end = False
-	print(IP)
+	print("Message board\nIP: "+IP+"\nPort: "+str(PORT))
 	help()
 	try:
 		while (not end):
 			opt = input("Enter a command: ")
-			if opt == "connect":
+			# for when the user needs the command menu
+			if opt == "help":
+				help()
+			elif opt == "connect":
 				server_ip = input("Enter server ip address: ")
 				server_port = input("Enter server port: ")
 				if (server_ip == IP) and (int(server_port) == PORT):
@@ -137,6 +143,8 @@ if __name__ == "__main__":
 				server_msg = convert_json(data=user_s.recv(1024))
 				#should recieve back the specific message requested
 				print(server_msg["Data"])
+			else:
+				print("Command Invalid")
 	except KeyboardInterrupt:
 		print("Keyboard Interrupted, exiting")
 
