@@ -117,7 +117,11 @@ if __name__ == "__main__":
 				#Needs a simple you've left the group message perferrably with the number of the group
 				print(server_msg["Data"])
 			elif opt == "group_post":
+<<<<<<< HEAD
 				gNum = input("Enter which group you would like to post to: ")
+=======
+				gnum = input("Enter which group you would like to post to: ")
+>>>>>>> 0c69c6200a902ba621699d841ac99a0ca9eb8845
 				sub = input("Enter your Subject: ")
 				msg = sub + "\n\r" + input("Your Message: ")
 				user_s.send(create_json(opt,username,gNum, msg).encode())
@@ -125,7 +129,11 @@ if __name__ == "__main__":
 				#Should recieve back your message on the message board below the most recent message
 				print(server_msg["Data"])
 			elif opt == "group_users":
+<<<<<<< HEAD
 				gNum = input("Enter which group you would like to view its users: ")
+=======
+				gnum = input("Enter which group you would like to view its users: ")
+>>>>>>> 0c69c6200a902ba621699d841ac99a0ca9eb8845
 				user_s.send(create_json(opt,username,gNum,"").encode())
 				server_msg = convert_json(data=user_s.recv(1024))
 				#Should recieve back a list of all users for that specific group 
