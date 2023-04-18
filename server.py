@@ -96,13 +96,18 @@ def message(username, data):
 	print(username+' retrieve message #'+data)
 	return create_json('message', username, '', msg)
 
+def in_group(username, group):
+	if username not in GROUP_USERS[group]:
+		return False
+	return True
+
 def groups(username):
 	global GROUP_USERS, GROUPS
 	g = []
 	for group in GROUPS:
-		if username not in GROUP_USERS[group]:
+		if not(in_group(username, group)):
 			g.append(group)
-	msg = ''
+	msg = 'Groups available to join:\n'
 	for grp in g:
 		msg = msg + grp + '\t'
 	message = create_json('groups', username, '', msg)
@@ -112,56 +117,67 @@ def groupjoin(username, group):
 	global GROUP_USERS
 	gtj = group
 	# join if user not in group, send error if user already in group
-	if username not in GROUP_USERS[gtj]:
-		message = create_json('groupjoin', username, group, gtj+'-successfully-joined')
+	if not(in_group(username, gtj)):
+		GROUP_USERS[gtj].append(username)
+		message = create_json('group_join', username, group, gtj+'-successfully-joined')
+		print(username+" joined group "+gtj)
 	else:
-		message = create_json('groupjoin', username, group, gtj+'-already-joined')
-	print(username+" joined group "+gtj)
+		message = create_json('group_join', username, group, gtj+'-already-joined')
 	return message
 
 
 def groupleave(username, group):
 	global GROUP_USERS
 	gtl = group
-	if username in GROUP_USERS[gtl]:
+	if (in_group(username, gtl)):
 		GROUP_USERS[gtl] = [u for u in GROUP_USERS[gtl] if u != username]
-		message = create_json('groupleave', username, group, gtl+'-successfully-left')
+		message = create_json('group_leave', username, group, gtl+'-successfully-left')
 	else:
-		message = create_json('groupleave', username, group, 'not-in-'+gtl)
+		message = create_json('group_leave', username, group, 'not-in-'+gtl)
 	print(username+" left group "+gtl)
 	return message
 
-def groupmessage(username, group):
+def groupmessage(username, group, data):
 	global GROUP_USERS, GROUP_MESSAGES
 	gm = group
-	if username in GROUP_USERS[gm]:
-		message = create_json('groupmessage', username, group, gm+'-last-2-message\n\r'+GROUP_MESSAGES[gm][0:2])
+	msg_id = data
+	if (in_group(username, gm)):
+		if msg_id not in GROUP_MESSAGES[gm].keys():
+			message = create_json('group_message', username, group, 'Group message ID invalid')
+		else:
+			print(username+" found msg[" + msg_id+ "] " "in "+gm)
+			message = create_json('group_message', username, group, gm+'-message-id-'+msg_id+'\n\r'+GROUP_MESSAGES[gm][data])
 	else:
-		message = create_json('groupmessage', username, group, 'user-not-in-group')
-	print(username+" found msg in "+gm)
+		message = create_json('group_message', username, group, 'user-not-in-group')
 	return message
 
 def grouppost(username, group, data):
 	# checking if user in group to post
 	global GROUP_MESSAGES
-	gm = group
-	message_id = str(len(GROUP_MESSAGES[gm]))
-	sender = username
-	message = data
-	post_date = str(date.today())
-	msg = sender+"\n\r"+post_date+"\n\r"+message
-	GROUP_MESSAGES[gm][message_id] = msg
-	print(username+" posted in group "+gm)
-	return create_json('grouppost', username, group, 'post-success')
+	if not(in_group(username, group)):
+		server_message = create_json('group_post', username, group, 'user-not-in-group')
+	else:
+		gm = group
+		message_id = str(len(GROUP_MESSAGES[gm]))
+		sender = username
+		message = data
+		post_date = str(date.today())
+		msg = sender+"\n\r"+post_date+"\n\r"+message
+		GROUP_MESSAGES[gm][message_id] = msg
+		print(username+" posted in group "+gm)
+		print("Current "+gm+" message num: "+str(len(GROUP_MESSAGES[gm])))
+		# print(str(GROUP_MESSAGES[gm]))
+		server_message = create_json('group_post', username, group, 'post-success')
+	return server_message
 
-def groupuser(username, group, data):
+def groupuser(username, group):
 	global GROUP_USERS
 	gu = group
-	if username in GROUP_USERS[gu]:
+	if in_group(username, group):
 		message = GROUP_USERS[gu]
 	else:
 		message = 'user-not-in-group'
-	return create_json('groupuser', username, group, message)
+	return create_json('group_users', username, group, message)
 
 def handle_error(num):
 	# 0 for wrong opt and group
@@ -199,13 +215,14 @@ def handle_user(user_conn, user_addr):
 		#handle error
 		if ((opt == "exit")|(opt == "message")|(opt == "users")|(opt == "groups")|(opt == "leave")|(opt == "join")|(opt == "post"))&(grp!=''):
 			user_conn.send(handle_error(0).encode())
-		elif ((opt == "group_message")|(opt == "group_user")|(opt == "group_post")|(opt == "group_leave")|(opt == "group_join"))&(grp==''):
+		elif ((opt == "group_message")|(opt == "group_users")|(opt == "group_post")|(opt == "group_leave")|(opt == "group_join"))&(grp==''):
 			user_conn.send(handle_error(0).encode())
 		elif (grp != '') and (grp not in GROUPS):
 			user_conn.send(handle_error(2).encode())
 
 		# exit
 		elif opt == "exit":
+			user_conn.send(leave(username).encode())
 			user_thread = False
 			break
 
@@ -245,10 +262,10 @@ def handle_user(user_conn, user_addr):
 
 		# group message
 		elif opt == "group_message":
-			user_conn.send(groupmessage(username, grp).encode())
+			user_conn.send(groupmessage(username, grp, data).encode())
 
 		# group user
-		elif opt == "group_user":
+		elif opt == "group_users":
 			user_conn.send(groupuser(username, grp).encode())
 
 		# group post
