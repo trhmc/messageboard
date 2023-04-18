@@ -24,14 +24,14 @@ def create_json(opt, username, group, data):
 
 def help():
 	print('Commands: ')
-	print('connect ip port')
+	print('connect')
 	print('exit')
 	print('join')
 	print('leave')
 	print('post')
 	print('message')
 
-IP = "10.10.28.110"
+IP = "192.168.86.26"
 PORT = 12345
 
 if __name__ == "__main__":
@@ -57,34 +57,36 @@ if __name__ == "__main__":
 				else:
 					print("Could not connect to "+server_ip+"-Port: "+server_port)
 			elif opt == "exit":
-				user_s.send(create_json('exit','','','').encode())
+				user_s.send(create_json(opt,'','','').encode())
 				end = True
 			elif opt == "join":
 				username = input("Enter your username: ")
-				user_s.send(create_json("join",username,"","").encode())
+				user_s.send(create_json(opt,username,"","").encode())
 				server_msg = convert_json(data=user_s.recv(1024))
 				#Needs a youve joined a group message and access to the most recent 2 message
-				print(server_msg["Data"])
+				msg = server_msg["Data"].split('\n\r')
+				for m in msg:
+					print(m)
 			elif opt == "leave":
-				user_s.send(create_json("leave",username,"","").encode())
+				user_s.send(create_json(opt,username,"","").encode())
 				server_msg = convert_json(data=user_s.recv(1024))
 				#Needs a simple you've left the group message
 				print(server_msg["Data"])
 			elif opt == "post":
 				sub = input("Your Subject: ")
 				msg = sub + "\n\r" + input("Your message: ")
-				user_s.send(create_json("post",username,"", msg).encode())
+				user_s.send(create_json(opt,username,"", msg).encode())
 				server_msg = convert_json(data=user_s.recv(1024))
 				#Should recieve back your message on the message board below the most recent message
 				print(server_msg["Data"])
 			elif opt == "users":
-				user_s.send(create_json("users",username,"","").encode())
+				user_s.send(create_json(opt,username,"","").encode())
 				server_msg = convert_json(data=user_s.recv(1024))
 				#Should recieve back a list of all users 
 				print(server_msg["Data"])
 			elif opt == "message":
 				msg_id = input("Enter the msg id: ")
-				user_s.send(create_json("message", username, "", msg_id).encode())
+				user_s.send(create_json(opt, username, "", msg_id).encode())
 				server_msg = convert_json(data=user_s.recv(1024))
 				#should recieve back the specific message requested
 				print(server_msg["Data"])
@@ -92,37 +94,39 @@ if __name__ == "__main__":
 			#
 			#Group Section 
 			elif opt == "groups":
-				user_s.send(create_json("groups",username,"","").encode())
+				user_s.send(create_json(opt,username,"","").encode())
 				server_msg = convert_json(data=user_s.recv(1024))
 				#Needs a list of all possible groups
 				print(server_msg["Data"])
-			elif opt == "groupjoin":
-				username = input("Enter your username: ")
+			elif opt == "group_join":
+				# username = input("Enter your username: ")
 				gNum = input("Enter the group you would like to join: ")
-				user_s.send(create_json("join",username,gNum,"").encode())
+				user_s.send(create_json(opt,username,gNum,"").encode())
 				server_msg = convert_json(data=user_s.recv(1024))
 				#Needs a youve joined a group message and access to the most recent 2 message of that specific group
 				print(server_msg["Data"])
-			elif opt == "groupleave":
-				user_s.send(create_json("leave",username,gNum,"").encode())
+			elif opt == "group_leave":
+				user_s.send(create_json(opt,username,gNum,"").encode())
 				server_msg = convert_json(data=user_s.recv(1024))
-				#Needs a simple you've left the group message perferrably with the number of the group 
+				#Needs a simple you've left the group message perferrably with the number of the group
+				# re-initialize the gNum
 				print(server_msg["Data"])
-			elif opt == "grouppost":
+			elif opt == "group_post":
+				# specify which group to post and add an error if user is not in that group
 				sub = input("Your Subject: ")
 				msg = sub + "\n\r" + input("Your message: ")
-				user_s.send(create_json("post",username,gNum, msg).encode())
+				user_s.send(create_json(opt,username,gNum, msg).encode())
 				server_msg = convert_json(data=user_s.recv(1024))
 				#Should recieve back your message on the message board below the most recent message
 				print(server_msg["Data"])
-			elif opt == "groupusers":
-				user_s.send(create_json("users",username,gNum,"").encode())
+			elif opt == "group_users":
+				user_s.send(create_json(opt,username,gNum,"").encode())
 				server_msg = convert_json(data=user_s.recv(1024))
 				#Should recieve back a list of all users for that specific group 
 				print(server_msg["Data"])
-			elif opt == "groupmessage":
+			elif opt == "group_message":
 				msg_id = input("Enter the msg id: ")
-				user_s.send(create_json("message", username, "", msg_id).encode())
+				user_s.send(create_json(opt, username, "", msg_id).encode())
 				server_msg = convert_json(data=user_s.recv(1024))
 				#should recieve back the specific message requested
 				print(server_msg["Data"])

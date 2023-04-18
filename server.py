@@ -41,22 +41,33 @@ def create_json(opt, username, group, data):
 	return json.dumps(message)
 
 def join(username):
+	global USERS, MESSAGES
 	# checking if a username is taken or not
 	if username in USERS:
 		message = create_json('join', username, '', 'Username-taken')
 	else:
 		USERS.append(username)
 		print("Added "+username+" to list of users")
-		message = create_json('join', username, '', 'Username-accept')
+		# adding the last two message to send back to client
+		message_id = len(MESSAGES)
+		if message_id > 1:
+			msg_board = MESSAGES[message_id-2]+'\n\r'+MESSAGES[message_id-1]
+		elif message_id == 1:
+			msg_board = MESSAGES[message_id-1]
+		elif message_id == 0:
+			msg_board = ''
+		message = create_json('join', username, '', 'Username-accept'+'\n\r'+msg_board)
 	return message
 
 def leave(username):
+	global USERS
 	USERS = [user for user in USERS if user != username]
 	print(username+" has left the building.")
 	message = create_json('leave', username, '', 'Username-removed')
 	return message
 
 def post(username, data):
+	global MESSAGES
 	# imagine message under format: id\n\rsender\n\rpost_date\n\rmessage
 	message_id = len(MESSAGES)
 	sender = username
@@ -69,12 +80,14 @@ def post(username, data):
 	return create_json('post', username, '', 'post-success')
 
 def users(username):
+	global USERS
 	# may think of different way to represent data
 	message = create_json('users', username, '', USERS)
 	print(username+" retrieved list of users")
 	return message
 
 def message(username, data):
+	global MESSAGES
 	message_id = int(data)
 	if message_id in MESSAGES:
 		msg = 'Message-retreived:\n'+MESSAGES[message_id]
@@ -84,17 +97,22 @@ def message(username, data):
 	return create_json('message', username, '', msg)
 
 def groups(username):
+	global GROUP_USERS, GROUPS
 	g = []
 	for group in GROUPS:
-		if username not in GROUPS[group]:
+		if username not in GROUP_USERS[group]:
 			g.append(group)
-	message = create_json('groups', username, '', g)
+	msg = ''
+	for grp in g:
+		msg = msg + grp + '\t'
+	message = create_json('groups', username, '', msg)
 	return message
 
 def groupjoin(username, group):
+	global GROUP_USERS
 	gtj = group
 	# join if user not in group, send error if user already in group
-	if username not in GROUPS[gtj]:
+	if username not in GROUP_USERS[gtj]:
 		message = create_json('groupjoin', username, group, gtj+'-successfully-joined')
 	else:
 		message = create_json('groupjoin', username, group, gtj+'-already-joined')
@@ -103,9 +121,10 @@ def groupjoin(username, group):
 
 
 def groupleave(username, group):
+	global GROUP_USERS
 	gtl = group
-	if username in GROUPS[gtl]:
-		GROUPS[gtl] = [u for u in GROUPS[gtl] if u != username]
+	if username in GROUP_USERS[gtl]:
+		GROUP_USERS[gtl] = [u for u in GROUP_USERS[gtl] if u != username]
 		message = create_json('groupleave', username, group, gtl+'-successfully-left')
 	else:
 		message = create_json('groupleave', username, group, 'not-in-'+gtl)
@@ -113,8 +132,9 @@ def groupleave(username, group):
 	return message
 
 def groupmessage(username, group):
+	global GROUP_USERS, GROUP_MESSAGES
 	gm = group
-	if username in GROUPS[gm]:
+	if username in GROUP_USERS[gm]:
 		message = create_json('groupmessage', username, group, gm+'-last-2-message\n\r'+GROUP_MESSAGES[gm][0:2])
 	else:
 		message = create_json('groupmessage', username, group, 'user-not-in-group')
@@ -122,6 +142,8 @@ def groupmessage(username, group):
 	return message
 
 def grouppost(username, group, data):
+	# checking if user in group to post
+	global GROUP_MESSAGES
 	gm = group
 	message_id = str(len(GROUP_MESSAGES[gm]))
 	sender = username
@@ -133,6 +155,7 @@ def grouppost(username, group, data):
 	return create_json('grouppost', username, group, 'post-success')
 
 def groupuser(username, group, data):
+	global GROUP_USERS
 	gu = group
 	if username in GROUP_USERS[gu]:
 		message = GROUP_USERS[gu]
@@ -175,9 +198,9 @@ def handle_user(user_conn, user_addr):
 
 		#handle error
 		if ((opt == "exit")|(opt == "message")|(opt == "users")|(opt == "groups")|(opt == "leave")|(opt == "join")|(opt == "post"))&(grp!=''):
-			user_conn.send(handle_error(0)).encode()
+			user_conn.send(handle_error(0).encode())
 		elif ((opt == "group_message")|(opt == "group_user")|(opt == "group_post")|(opt == "group_leave")|(opt == "group_join"))&(grp==''):
-			user_conn.send(handle_error(0)).encode()
+			user_conn.send(handle_error(0).encode())
 		elif (grp != '') and (grp not in GROUPS):
 			user_conn.send(handle_error(2).encode())
 
@@ -238,7 +261,7 @@ def handle_user(user_conn, user_addr):
 	print("User disconnected:", user_addr)
 	user_conn.close()
 
-HOST = "10.10.28.110"
+HOST = "192.168.86.26"
 PORT = 12345
 
 if __name__ == "__main__":
