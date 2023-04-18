@@ -233,7 +233,7 @@ def handle_user(user_conn, user_addr):
 		# leave
 		elif opt == "leave":
 			user_conn.send(leave(username).encode())
-			user_thread = False
+			# user_thread = False
 			break
 
 		# users request
