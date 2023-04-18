@@ -1,5 +1,5 @@
 A message board application
-
+Members: Chau Tran, Terrance Miller
 /**********REQUIREMENTS*********/
 Both server.py and client.py should run using python 3.x
 
