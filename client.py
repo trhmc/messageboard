@@ -40,7 +40,7 @@ def help():
 	print('group_users\tCommand to retrieve list of users in a group')
 	print("Press Ctrl+C to stop.")
 
-IP = "192.168.86.26"
+IP = "10.10.17.177"
 PORT = 12345
 
 if __name__ == "__main__":

@@ -355,7 +355,7 @@ def handle_user(user_conn, user_addr):
 	print("User disconnected:", user_addr)
 	user_conn.close()
 
-HOST = "192.168.86.26"
+HOST = "10.10.17.177"
 PORT = 12345
 
 if __name__ == "__main__":
